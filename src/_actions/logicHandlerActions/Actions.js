@@ -270,12 +270,18 @@ export const getOrdersWithStatus =
     }
   };
 export const CreateOrder =
-  (setIsOrdersViewOpen, setOrders, orders, total, handlePrintTicket) =>
+  (setIsOrdersViewOpen, setOrders, orders, total, handlePrintTicket, mode) =>
   async (dispatch) => {
+    console.log("order", {
+      id_dishes: orders,
+      total_price: total,
+      m_consommation: mode,
+    });
     try {
       const { data } = await axios.post(`${API_URL}/createOrder`, {
         id_dishes: orders,
         total_price: total,
+        m_consommation: mode,
       });
       const { success, message } = data;
       if (success === true) {

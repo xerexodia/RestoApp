@@ -7,6 +7,7 @@ import {
   ScrollView,
   Pressable,
 } from "react-native";
+import CheckBox from "expo-checkbox";
 import React from "react";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import Animated, {
@@ -32,7 +33,15 @@ const OrdersView = ({
 }) => {
   const user = useSelector((state) => state.auth.user);
 
+  const getOrderType = (type) => {
+    if (type === "livraison") return 3;
+    if (type === "à emporter") return 2;
+    if (type === "sur place") return 1;
+  };
+  const mode = getOrderType(ordersType);
+
   const dispatch = useDispatch();
+  const [checked, setChecked] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState("cash");
   const [clientMoney, setClientMoney] = useState(0);
   const [show, setShow] = useState(false);
@@ -56,117 +65,368 @@ const OrdersView = ({
       date.getMonth() + 1
     }-${date.getDate()}`;
 
-    const ticketHTML = `
-    <div style="width: 300px; padding: 10px; border: 1px solid #000; display:flex; flex-direction:column;">
-      <h1 style="text-align: center; font-size: 1.2rem; font-weight: bold; margin: 0 0 10px;">Ticket</h1>
-      <div style="margin-bottom: 10px;">
-                <p style="font-size: 0.9rem; margin: 0;">Adresse: rue ibn kholdoun </p>
-                <p style="font-size: 0.9rem; margin: 0;">Tel: +523 12323 123 </p>
-                <p style="font-size: 0.9rem; margin: 0;">N° SIRET: qsd123 </p>
-                <h1 style="text-align: center;  font-weight: bold; margin: 18px 0;">Payée</h1>
-                <p style="font-size: 0.9rem; margin: 0;">Nom du client: mohamed </p>
-                <p style="font-size: 0.9rem; margin: 0;">N° de commande: #123123545DF </p>
-                ${
-                  tableNumber &&
-                  `<p style="font-size: 0.9rem; margin: 0;">N° de table: ${tableNumber}</p>`
-                }
-                <p style="font-size: 0.9rem; margin: 0;">Nom du caissier: ${
-                  user?.fullname
-                } </p>
-                <p style="font-size: 0.9rem; margin: 0;">Type de commande: ${ordersType} </p>
-                <p style="font-size: 0.9rem; margin: 0;">Mode du paiement: ${
-                  paymentMethod === "other" ? "autre" : "payement via card"
-                } </p>
-                <hr style="border: none; border-top: 1px dashed #000; margin: 15px 0;">
-
-                ${orders
-                  ?.map(
-                    (order) => `
-              <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                <p style="font-size: 0.9rem; margin: 0;">${order.name} </p>
-                <p style="font-size: 0.9rem; margin: 0;">${order.quantity}</p>
+    const ticketHTML = checked
+      ? `
+      <html>
+     
+      <body>
+        <div class="pagebreak"><div style="width: 300px; padding: 10px; border: 1px solid #000; display:flex; flex-direction:column;">
+        <h1 style="text-align: center; font-size: 1.2rem; font-weight: bold; margin: 0 0 10px;">Ticket</h1>
+        <div style="margin-bottom: 10px;">
+                  <p style="font-size: 0.9rem; margin: 0;">Adresse: rue ibn kholdoun </p>
+                  <p style="font-size: 0.9rem; margin: 0;">Tel: +523 12323 123 </p>
+                  <p style="font-size: 0.9rem; margin: 0;">N° SIRET: qsd123 </p>
+                  <h1 style="text-align: center;  font-weight: bold; margin: 18px 0;">Payée</h1>
+                  <p style="font-size: 0.9rem; margin: 0;">Nom du client: mohamed </p>
+                  <p style="font-size: 0.9rem; margin: 0;">N° de commande: #123123545DF </p>
+                  ${
+                    tableNumber
+                      ? `<p style="font-size: 0.9rem; margin: 0;">N° de table: ${tableNumber}</p>:`
+                      : ""
+                  }
+                  <p style="font-size: 0.9rem; margin: 0;">Nom du caissier: ${
+                    user?.fullname
+                  } </p>
+                  <p style="font-size: 0.9rem; margin: 0;">Type de commande: ${ordersType} </p>
+                  <p style="font-size: 0.9rem; margin: 0;">Mode du paiement: ${
+                    paymentMethod === "other" ? "autre" : "payement via card"
+                  } </p>
+                  <hr style="border: none; border-top: 1px dashed #000; margin: 15px 0;">
+    
+                  ${orders
+                    ?.map(
+                      (order) => `
+                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                  <p style="font-size: 0.9rem; margin: 0;">${order.name} </p>
+                  <p style="font-size: 0.9rem; margin: 0;">${order.quantity}</p>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                  <p style="font-size: 0.8rem; margin: 0 0 0 20px;">Prix par pièce:</p>
+                  <p style="font-size: 0.8rem; margin: 0;">${order.price} €</p>
+                </div>
+                `
+                    )
+                    .join("")}
+                    </div>
+                    <hr style="border: none; border-top: 1px dashed #000; margin: 5px 0;">
+        <div style="display: flex; flex-direction:column; justify-content: space-between; margin-bottom: 5px;">
+              ${
+                paymentMethod === "other"
+                  ? `
+                  <div style="display: flex; margin-bottom:5px; justify-content: space-between; ">
+                  <p style="font-size: 0.8rem; margin: 0;">montant payé en éspèces:</p>
+                  <p style="font-size: 0.8rem; margin: 0; margin-right:8px">${cashPayment} €</p>
+                  </div>
+                  <div style="display: flex; justify-content: space-between;">
+                  <p style="font-size: 0.8rem; margin: 0;">montant payé via carte:</p>
+                  <p style="font-size: 0.8rem; margin: 0;margin-right:8px">${cardPayment} €</p>
+                  
+                  `
+                  : `
+                    <div style="display: flex; margin-bottom:5px; justify-content: space-between; ">
+                  <p style="font-size: 0.8rem; margin: 0;">montant payé en éspèces:</p>
+                  <p style="font-size: 0.8rem; margin: 0; margin-right:8px">${clientMoney} €</p>
+                  </div>
+                  
+                    `
+              }
               </div>
-              <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                <p style="font-size: 0.8rem; margin: 0 0 0 20px;">Prix par pièce:</p>
-                <p style="font-size: 0.8rem; margin: 0;">${order.price} €</p>
-              </div>
-              `
-                  )
-                  .join("")}
+                  <div>
+                  <hr style="border: none; border-top: 1px dashed #000; margin: 5px 0;">
+                  <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                  <p style="font-size: 0.8rem; margin: 0;">Total Payé:</p>
+                  <p style="font-size: 0.8rem; margin: 0;">${
+                    paymentMethod === "cash"
+                      ? clientMoney
+                      : parseFloat(cardPayment) + parseFloat(cashPayment)
+                  } €</p>
                   </div>
                   <hr style="border: none; border-top: 1px dashed #000; margin: 5px 0;">
-      <div style="display: flex; flex-direction:column; justify-content: space-between; margin-bottom: 5px;">
-            ${
-              paymentMethod === "other"
-                ? `
-                <div style="display: flex; margin-bottom:5px; justify-content: space-between; ">
-                <p style="font-size: 0.8rem; margin: 0;">montant payé en éspèces:</p>
-                <p style="font-size: 0.8rem; margin: 0; margin-right:8px">${cashPayment} €</p>
+                  <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                  <p style="font-size: 0.8rem; margin: 0;">TVA (5%):</p>
+                  <p style="font-size: 0.8rem; margin: 0;">${(
+                    total * 0.05
+                  ).toFixed(2)} €</p>
                 </div>
-                <div style="display: flex; justify-content: space-between;">
-                <p style="font-size: 0.8rem; margin: 0;">montant payé via carte:</p>
-                <p style="font-size: 0.8rem; margin: 0;margin-right:8px">${cardPayment} €</p>
-                
+        </div>
+        <div style="display: flex; justify-content: space-between;">
+          <p style="font-size: 0.9rem; margin: 0; font-weight: bold;">Total (Including TVA):</p>
+          <p style="font-size: 0.9rem; margin: 0; font-weight: bold;">${totalWithTVA.toFixed(
+            2
+          )} €</p>
+        </div>
+        <div>
+        <hr style="border: none; border-top: 1px dashed #000; margin: 5px 0;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+        <p style="font-size: 0.8rem; margin: 0;">Reste a Payé:</p>
+        <p style="font-size: 0.8rem; margin: 0;">${
+          paymentMethod === "cash"
+            ? totalWithTVA.toFixed(2) - clientMoney
+            : totalWithTVA.toFixed(2) -
+              (parseFloat(cardPayment) + parseFloat(cashPayment))
+        } €</p>
+        </div>
+        <div style="display:flex; flex-direction:column; align-items:center; margin-top:20px;">
+        <p style="text-align: right; margin: 0 0 10px;">Date: ${formattedDate}</p>
+        <p>Mot de passe WIFI: 1231931239</p>
+        <p style="text-align:center;">Bonne appétit,<br/> Merci pour votre visite</p>
+        <img id='barcode' 
+        src="https://api.qrserver.com/v1/create-qr-code/?data=HelloWorld&amp;size=100x100" 
+        alt=""  
+        title="HELLO" 
+        width="70" 
+        height="70"
+        style=" margin:30px 0 10px 0;"
+        />
+        <span style="margin-top:20px; font-size:20px; font-weight:500;">(1/2)</span>
+
+        </div>
+        </div>
+      </div>
+      
+      
+      
+      <div class="pagebreak">
+      <div style="width: 300px; padding: 10px; border: 1px solid #000; display:flex; flex-direction:column;">
+        <h1 style="text-align: center; font-size: 1.2rem; font-weight: bold; margin: 0 0 10px;">Ticket</h1>
+        <div style="margin-bottom: 10px;">
+                  <p style="font-size: 0.9rem; margin: 0;">Adresse: rue ibn kholdoun </p>
+                  <p style="font-size: 0.9rem; margin: 0;">Tel: +523 12323 123 </p>
+                  <p style="font-size: 0.9rem; margin: 0;">N° SIRET: qsd123 </p>
+                  <h1 style="text-align: center;  font-weight: bold; margin: 18px 0;">Payée</h1>
+                  <p style="font-size: 0.9rem; margin: 0;">Nom du client: mohamed </p>
+                  <p style="font-size: 0.9rem; margin: 0;">N° de commande: #123123545DF </p>
+                  ${
+                    tableNumber
+                      ? `<p style="font-size: 0.9rem; margin: 0;">N° de table: ${tableNumber}</p>:`
+                      : ""
+                  }
+                  <p style="font-size: 0.9rem; margin: 0;">Nom du caissier: ${
+                    user?.fullname
+                  } </p>
+                  <p style="font-size: 0.9rem; margin: 0;">Type de commande: ${ordersType} </p>
+                  <p style="font-size: 0.9rem; margin: 0;">Mode du paiement: ${
+                    paymentMethod === "other" ? "autre" : "payement via card"
+                  } </p>
+                  <hr style="border: none; border-top: 1px dashed #000; margin: 15px 0;">
+    
+                  ${orders
+                    ?.map(
+                      (order) => `
+                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                  <p style="font-size: 0.9rem; margin: 0;">${order.name} </p>
+                  <p style="font-size: 0.9rem; margin: 0;">${order.quantity}</p>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                  <p style="font-size: 0.8rem; margin: 0 0 0 20px;">Prix par pièce:</p>
+                  <p style="font-size: 0.8rem; margin: 0;">${order.price} €</p>
+                </div>
                 `
-                : `
+                    )
+                    .join("")}
+                    </div>
+                    <hr style="border: none; border-top: 1px dashed #000; margin: 5px 0;">
+        <div style="display: flex; flex-direction:column; justify-content: space-between; margin-bottom: 5px;">
+              ${
+                paymentMethod === "other"
+                  ? `
                   <div style="display: flex; margin-bottom:5px; justify-content: space-between; ">
-                <p style="font-size: 0.8rem; margin: 0;">montant payé en éspèces:</p>
-                <p style="font-size: 0.8rem; margin: 0; margin-right:8px">${clientMoney} €</p>
-                </div>
-                
+                  <p style="font-size: 0.8rem; margin: 0;">montant payé en éspèces:</p>
+                  <p style="font-size: 0.8rem; margin: 0; margin-right:8px">${cashPayment} €</p>
+                  </div>
+                  <div style="display: flex; justify-content: space-between;">
+                  <p style="font-size: 0.8rem; margin: 0;">montant payé via carte:</p>
+                  <p style="font-size: 0.8rem; margin: 0;margin-right:8px">${cardPayment} €</p>
+                  
                   `
-            }
+                  : `
+                    <div style="display: flex; margin-bottom:5px; justify-content: space-between; ">
+                  <p style="font-size: 0.8rem; margin: 0;">montant payé en éspèces:</p>
+                  <p style="font-size: 0.8rem; margin: 0; margin-right:8px">${clientMoney} €</p>
+                  </div>
+                  
+                    `
+              }
+              </div>
+                  <div>
+                  <hr style="border: none; border-top: 1px dashed #000; margin: 5px 0;">
+                  <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                  <p style="font-size: 0.8rem; margin: 0;">Total Payé:</p>
+                  <p style="font-size: 0.8rem; margin: 0;">${
+                    paymentMethod === "cash"
+                      ? clientMoney
+                      : parseFloat(cardPayment) + parseFloat(cashPayment)
+                  } €</p>
+                  </div>
+                  <hr style="border: none; border-top: 1px dashed #000; margin: 5px 0;">
+                  <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                  <p style="font-size: 0.8rem; margin: 0;">TVA (5%):</p>
+                  <p style="font-size: 0.8rem; margin: 0;">${(
+                    total * 0.05
+                  ).toFixed(2)} €</p>
+                </div>
+        </div>
+        <div style="display: flex; justify-content: space-between;">
+          <p style="font-size: 0.9rem; margin: 0; font-weight: bold;">Total (Including TVA):</p>
+          <p style="font-size: 0.9rem; margin: 0; font-weight: bold;">${totalWithTVA.toFixed(
+            2
+          )} €</p>
+        </div>
+        <div>
+        <hr style="border: none; border-top: 1px dashed #000; margin: 5px 0;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+        <p style="font-size: 0.8rem; margin: 0;">Reste a Payé:</p>
+        <p style="font-size: 0.8rem; margin: 0;">${
+          paymentMethod === "cash"
+            ? totalWithTVA.toFixed(2) - clientMoney
+            : totalWithTVA.toFixed(2) -
+              (parseFloat(cardPayment) + parseFloat(cashPayment))
+        } €</p>
+        </div>
+        <div style="display:flex; flex-direction:column; align-items:center; margin-top:20px;">
+        <p style="text-align: right; margin: 0 0 10px;">Date: ${formattedDate}</p>
+        <p>Mot de passe WIFI: 1231931239</p>
+        <p style="text-align:center;">Bonne appétit,<br/> Merci pour votre visite</p>
+        <img id='barcode' 
+        src="https://api.qrserver.com/v1/create-qr-code/?data=HelloWorld&amp;size=100x100" 
+        alt=""  
+        title="HELLO" 
+        width="70" 
+        height="70"
+        style=" margin:30px 0 10px 0;"
+        />
+        <span style="margin-top:20px; font-size:20px; font-weight:500;">(2/2)</span>
+        </div>
+        </div>
+      </div>
+      </body>
+      <style>
+      @page print {
+          .pagebreak { break-before: page; }
+      }
+      @media print {
+          .pagebreak { break-before: page; }
+      }
+      @page print {
+          .pagebreak { page-break-before: always; }
+      }
+      @media print {
+          .pagebreak { break-before: always; }
+      }
+      </style>
+      </html>
+    
+      `
+      : ` <div style="width: 300px; padding: 10px; border: 1px solid #000; display:flex; flex-direction:column;">
+    <h1 style="text-align: center; font-size: 1.2rem; font-weight: bold; margin: 0 0 10px;">Ticket</h1>
+    <div style="margin-bottom: 10px;">
+              <p style="font-size: 0.9rem; margin: 0;">Adresse: rue ibn kholdoun </p>
+              <p style="font-size: 0.9rem; margin: 0;">Tel: +523 12323 123 </p>
+              <p style="font-size: 0.9rem; margin: 0;">N° SIRET: qsd123 </p>
+              <h1 style="text-align: center;  font-weight: bold; margin: 18px 0;">Payée</h1>
+              <p style="font-size: 0.9rem; margin: 0;">Nom du client: mohamed </p>
+              <p style="font-size: 0.9rem; margin: 0;">N° de commande: #123123545DF </p>
+              ${
+                tableNumber
+                  ? `<p style="font-size: 0.9rem; margin: 0;">N° de table: ${tableNumber}</p>:`
+                  : ""
+              }
+              <p style="font-size: 0.9rem; margin: 0;">Nom du caissier: ${
+                user?.fullname
+              } </p>
+              <p style="font-size: 0.9rem; margin: 0;">Type de commande: ${ordersType} </p>
+              <p style="font-size: 0.9rem; margin: 0;">Mode du paiement: ${
+                paymentMethod === "other" ? "autre" : "payement via card"
+              } </p>
+              <hr style="border: none; border-top: 1px dashed #000; margin: 15px 0;">
+
+              ${orders
+                ?.map(
+                  (order) => `
+            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+              <p style="font-size: 0.9rem; margin: 0;">${order.name} </p>
+              <p style="font-size: 0.9rem; margin: 0;">${order.quantity}</p>
             </div>
-                <div>
-                <hr style="border: none; border-top: 1px dashed #000; margin: 5px 0;">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                <p style="font-size: 0.8rem; margin: 0;">Total Payé:</p>
-                <p style="font-size: 0.8rem; margin: 0;">${
-                  paymentMethod === "cash"
-                    ? clientMoney
-                    : parseFloat(cardPayment) + parseFloat(cashPayment)
-                } €</p>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+              <p style="font-size: 0.8rem; margin: 0 0 0 20px;">Prix par pièce:</p>
+              <p style="font-size: 0.8rem; margin: 0;">${order.price} €</p>
+            </div>
+            `
+                )
+                .join("")}
                 </div>
                 <hr style="border: none; border-top: 1px dashed #000; margin: 5px 0;">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                <p style="font-size: 0.8rem; margin: 0;">TVA (5%):</p>
-                <p style="font-size: 0.8rem; margin: 0;">${(
-                  total * 0.05
-                ).toFixed(2)} €</p>
+    <div style="display: flex; flex-direction:column; justify-content: space-between; margin-bottom: 5px;">
+          ${
+            paymentMethod === "other"
+              ? `
+              <div style="display: flex; margin-bottom:5px; justify-content: space-between; ">
+              <p style="font-size: 0.8rem; margin: 0;">montant payé en éspèces:</p>
+              <p style="font-size: 0.8rem; margin: 0; margin-right:8px">${cashPayment} €</p>
               </div>
-      </div>
-      <div style="display: flex; justify-content: space-between;">
-        <p style="font-size: 0.9rem; margin: 0; font-weight: bold;">Total (Including TVA):</p>
-        <p style="font-size: 0.9rem; margin: 0; font-weight: bold;">${totalWithTVA.toFixed(
-          2
-        )} €</p>
-      </div>
-      <div>
-      <hr style="border: none; border-top: 1px dashed #000; margin: 5px 0;">
-      <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-      <p style="font-size: 0.8rem; margin: 0;">Reste a Payé:</p>
-      <p style="font-size: 0.8rem; margin: 0;">${
-        paymentMethod === "cash"
-          ? totalWithTVA.toFixed(2) - clientMoney
-          : totalWithTVA.toFixed(2) -
-            (parseFloat(cardPayment) + parseFloat(cashPayment))
-      } €</p>
-      </div>
-      <div style="display:flex; flex-direction:column; align-items:center; margin-top:20px;">
-      <p style="text-align: right; margin: 0 0 10px;">Date: ${formattedDate}</p>
-      <p>Mot de passe WIFI: 1231931239</p>
-      <p style="text-align:center;">Bonne appétit,<br/> Merci pour votre visite</p>
-      <img id='barcode' 
-      src="https://api.qrserver.com/v1/create-qr-code/?data=HelloWorld&amp;size=100x100" 
-      alt=""  
-      title="HELLO" 
-      width="70" 
-      height="70"
-      style=" margin:30px 0 10px 0;"
-      />
-      </div>
+              <div style="display: flex; justify-content: space-between;">
+              <p style="font-size: 0.8rem; margin: 0;">montant payé via carte:</p>
+              <p style="font-size: 0.8rem; margin: 0;margin-right:8px">${cardPayment} €</p>
+              
+              `
+              : `
+                <div style="display: flex; margin-bottom:5px; justify-content: space-between; ">
+              <p style="font-size: 0.8rem; margin: 0;">montant payé en éspèces:</p>
+              <p style="font-size: 0.8rem; margin: 0; margin-right:8px">${clientMoney} €</p>
+              </div>
+              
+                `
+          }
+          </div>
+              <div>
+              <hr style="border: none; border-top: 1px dashed #000; margin: 5px 0;">
+              <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+              <p style="font-size: 0.8rem; margin: 0;">Total Payé:</p>
+              <p style="font-size: 0.8rem; margin: 0;">${
+                paymentMethod === "cash"
+                  ? clientMoney
+                  : parseFloat(cardPayment) + parseFloat(cashPayment)
+              } €</p>
+              </div>
+              <hr style="border: none; border-top: 1px dashed #000; margin: 5px 0;">
+              <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+              <p style="font-size: 0.8rem; margin: 0;">TVA (5%):</p>
+              <p style="font-size: 0.8rem; margin: 0;">${(total * 0.05).toFixed(
+                2
+              )} €</p>
+            </div>
     </div>
-  `;
+    <div style="display: flex; justify-content: space-between;">
+      <p style="font-size: 0.9rem; margin: 0; font-weight: bold;">Total (Including TVA):</p>
+      <p style="font-size: 0.9rem; margin: 0; font-weight: bold;">${totalWithTVA.toFixed(
+        2
+      )} €</p>
+    </div>
+    <div>
+    <hr style="border: none; border-top: 1px dashed #000; margin: 5px 0;">
+    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+    <p style="font-size: 0.8rem; margin: 0;">Reste a Payé:</p>
+    <p style="font-size: 0.8rem; margin: 0;">${
+      paymentMethod === "cash"
+        ? totalWithTVA.toFixed(2) - clientMoney
+        : totalWithTVA.toFixed(2) -
+          (parseFloat(cardPayment) + parseFloat(cashPayment))
+    } €</p>
+    </div>
+    <div style="display:flex; flex-direction:column; align-items:center; margin-top:20px;">
+    <p style="text-align: right; margin: 0 0 10px;">Date: ${formattedDate}</p>
+    <p>Mot de passe WIFI: 1231931239</p>
+    <p style="text-align:center;">Bonne appétit,<br/> Merci pour votre visite</p>
+    <img id='barcode' 
+    src="https://api.qrserver.com/v1/create-qr-code/?data=HelloWorld&amp;size=100x100" 
+    alt=""  
+    title="HELLO" 
+    width="70" 
+    height="70"
+    style=" margin:30px 0 10px 0;"
+    />
+    </div>
+  </div>`;
     try {
       const { uri } = await Print.printToFileAsync({ html: ticketHTML });
       await Print.printAsync({ uri });
@@ -188,17 +448,16 @@ const OrdersView = ({
       return alert("L'argent du client est insuffisant");
     }
 
-    if (paymentMethod === "cash") setIsClientMoneyModalOpen(true);
-    else
-      dispatch(
-        CreateOrder(
-          setIsOrdersViewOpen,
-          setOrders,
-          orders,
-          total,
-          handlePrintTicket
-        )
-      );
+    dispatch(
+      CreateOrder(
+        setIsOrdersViewOpen,
+        setOrders,
+        orders,
+        total,
+        handlePrintTicket,
+        mode
+      )
+    );
   };
 
   const handleVerifyOrderOtherPay = () => {
@@ -409,15 +668,14 @@ const OrdersView = ({
             placeholderTextColor={"#8d9195"}
             className="bg-input h-14 w-full px-3 mb-4 text-white rounded-lg"
             onChangeText={(text) => {
-              //if the text is not a number show alert
-              if (isNaN(text)) {
-                alert("Veuillez entrer un nombre valide");
-                return;
-              }
               setClientMoney(text);
             }}
           />
         )}
+        <View className="flex-row items-center justify-between mt-4">
+          <Text className="text-lg font-bold text-white">Diviser</Text>
+          <CheckBox value={checked} onValueChange={setChecked} />
+        </View>
         <View className="flex-row items-center justify-between mt-4">
           <Text className="text-lg font-bold text-white">Total</Text>
           <Text className="text-lg font-bold text-white">${total}</Text>

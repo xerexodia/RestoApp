@@ -153,7 +153,7 @@ const Home = ({ navigation }) => {
                   <TouchableOpacity
                     className="bg-black w-full p-5 mt-2 rounded-lg"
                     onPress={() => {
-                      setOpen(false), setShow(true);
+                      setOpen(false), setShow(true), setType("sur place");
                     }}
                   >
                     <Text className="font-semibold text-center text-white">

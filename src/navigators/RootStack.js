@@ -17,6 +17,7 @@ import Home from "../screens/DashboardScreens/Home";
 import Orders from "../screens/DashboardScreens/Orders";
 import Settings from "../screens/DashboardScreens/Settings";
 import Main from "../screens/DashboardScreens/Main";
+import Caisse from "../screens/DashboardScreens/Caisse";
 
 const Stack = createStackNavigator();
 const { white, black, primary, lightblack } = colors;
@@ -79,6 +80,13 @@ const RootStack = () => {
             <Stack.Screen
               name="Orders"
               component={Orders}
+              options={{
+                header: () => null,
+              }}
+            />
+            <Stack.Screen
+              name="Caisse"
+              component={Caisse}
               options={{
                 header: () => null,
               }}
